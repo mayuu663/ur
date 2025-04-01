@@ -11,8 +11,8 @@
     }
     #gameCanvas {
       display: block;
-      width: 100vw;
-      height: 100vh;
+      position: absolute;
+      z-index: 1;
       background-image: url('stage.png');
       background-size: cover;
       background-position: center;
@@ -106,15 +106,6 @@
   <div id="startScreen">
     <button id="startButton">ゲームスタート！</button>
   </div>
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    canvas.width = 400;
-    canvas.height = 600;
-
-    // ゲームロジックはここに続く（前回のコードが維持されていればOK）
-    // drawPlayer, shoot, startGame, restartGame, etc...
-  </script>
+  <script src="game.js"></script>
 </body>
 </html>
