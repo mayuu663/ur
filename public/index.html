@@ -11,7 +11,10 @@
     }
     canvas {
       display: block;
-      background: url('stage.png') center center / cover no-repeat;
+      background-image: url('stage.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
     }
     #controls {
       position: absolute;
@@ -130,7 +133,7 @@
       speed: 5
     };
 
-    let bullets, enemies, score, moveLeft, moveRight, lastShotTime, gameTime;
+    let bullets, enemies, effects, score, moveLeft, moveRight, lastShotTime, gameTime;
     let gameInterval, enemySpawnInterval, bonusTime = false;
     const shotCooldown = 250;
 
@@ -155,6 +158,7 @@
     function resetGame() {
       bullets = [];
       enemies = [];
+      effects = [];
       score = 0;
       moveLeft = false;
       moveRight = false;
@@ -182,6 +186,15 @@
       });
     }
 
+    function drawEffects() {
+      effects.forEach((fx, i) => {
+        ctx.beginPath();
+        ctx.arc(fx.x, fx.y, fx.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,192,203,${fx.alpha})`;
+        ctx.fill();
+      });
+    }
+
     function updateBullets() {
       bullets.forEach((b, index) => {
         b.y -= b.speed;
@@ -198,6 +211,14 @@
       });
     }
 
+    function updateEffects() {
+      effects.forEach((fx, i) => {
+        fx.alpha -= 0.05;
+        fx.size += 1;
+        if (fx.alpha <= 0) effects.splice(i, 1);
+      });
+    }
+
     function detectCollisions() {
       bullets.forEach((b, bIndex) => {
         enemies.forEach((e, eIndex) => {
@@ -209,6 +230,7 @@
           ) {
             bullets.splice(bIndex, 1);
             enemies.splice(eIndex, 1);
+            effects.push({ x: b.x, y: b.y, size: 5, alpha: 1 });
             score++;
           }
         });
@@ -230,9 +252,11 @@
       drawPlayer();
       drawBullets();
       drawEnemies();
+      drawEffects();
       drawScore();
       updateBullets();
       updateEnemies();
+      updateEffects();
       detectCollisions();
       requestAnimationFrame(gameLoop);
     }
