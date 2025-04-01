@@ -78,6 +78,8 @@
 
     let moveLeft = false;
     let moveRight = false;
+    let lastShotTime = 0;
+    const shotCooldown = 250; // 約0.25秒に1発
 
     function drawPlayer() {
       ctx.drawImage(currentImg, player.x, player.y, player.width, player.height);
@@ -152,6 +154,9 @@
     }
 
     function shoot() {
+      const now = Date.now();
+      if (now - lastShotTime < shotCooldown) return;
+      lastShotTime = now;
       bullets.push({ x: player.x + player.width / 2, y: player.y, speed: 7 });
       currentImg = playerImgHeart;
       setTimeout(() => currentImg = playerImgFront, 200);
