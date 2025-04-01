@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>爆アドジャンプゲーム</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 60px;
+      background: #fff8fc;
+    }
+
+    #character {
+      width: 300px;
+      transition: transform 0.2s ease;
+    }
+
+    .jumping {
+      transform: translateY(-30px);
+    }
+
+    #score, #timer {
+      font-size: 1.8rem;
+      margin: 10px;
+    }
+
+    #bakuaado {
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 3rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 20px rgba(255,255,255,0.9);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    #bakuaado.show {
+      opacity: 1;
+      animation: boom 0.6s ease alternate infinite;
+    }
+
+    @keyframes boom {
+      0% { transform: translate(-50%, -10px) scale(1); }
+      100% { transform: translate(-50%, 10px) scale(1.05); }
+    }
+
+    button {
+      font-size: 16px;
+      padding: 15px 30px;
+      margin-top: 20px;
+      border-radius: 12px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #title {
+      font-size: 1.5rem;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="username">@読み込み中...</h1>
+  <div id="timer">残り: 30秒</div>
+  <img id="character" src="https://cdn.glitch.global/cb9802f0-cf75-450e-8d7f-d270c4ff372d/idol-stand.PNG?v=1743528514014" alt="アイドル" />
+  <p id="score">スコア: 0</p>
+  <button id="tap" disabled>スタートを押してね</button>
+  <br><br>
+  <button id="start">スタート！</button>
+  <div id="title"></div>
+  <div id="bakuaado">爆アド！！</div>
+
+  <audio id="jumpSound" src="https://cdn.glitch.global/cb9802f0-cf75-450e-8d7f-d270c4ff372d/jump-sound.mp3?v=1743533179006" preload="auto"></audio>
+  <audio id="boomSound" src="https://cdn.glitch.global/cb9802f0-cf75-450e-8d7f-d270c4ff372d/boom-sound.mp3?v=1743533164710" preload="auto"></audio>
+
+  <script type="module">
+    let score = 0;
+    let timeLeft = 30;
+    let timerInterval = null;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      let username = '@Anonymous';
+      try {
+        const { sdk } = window.farcaster;
+        const context = await sdk.getContext();
+        username = `@${context?.user?.username ?? 'Anonymous'}`;
+        console.log('Farcaster context:', context);
+      } catch (e) {
+        console.log('Farcaster context取得失敗（ブラウザテスト用）');
+      }
+      document.getElementById('username').textContent = username;
+
+      const character = document.getElementById('character');
+      const scoreDisplay = document.getElementById('score');
+      const button = document.getElementById('tap');
+      const timerDisplay = document.getElementById('timer');
+      const startBtn = document.getElementById('start');
+      const jumpSound = document.getElementById('jumpSound');
+      const boomSound = document.getElementById('boomSound');
+      const baku = document.getElementById('bakuaado');
+      const title = document.getElementById('title');
+
+      const standImg = "https://cdn.glitch.global/cb9802f0-cf75-450e-8d7f-d270c4ff372d/idol-stand.PNG?v=1743528514014";
+      const jumpImg = "https://cdn.glitch.global/cb9802f0-cf75-450e-8d7f-d270c4ff372d/dol-jump.PNG?v=1743528505524";
+
+      button.addEventListener('click', () => {
+        if (timeLeft <= 0) return;
+
+        score++;
+        scoreDisplay.textContent = `スコア: ${score}`;
+        character.src = jumpImg;
+        character.classList.add('jumping');
+
+        jumpSound.currentTime = 0;
+        jumpSound.play();
+
+        if (score % 10 === 0) {
+          baku.classList.add('show');
+          boomSound.currentTime = 0;
+          boomSound.play();
+          setTimeout(() => baku.classList.remove('show'), 1200);
+        }
+
+        setTimeout(() => {
+          character.src = standImg;
+          character.classList.remove('jumping');
+        }, 200);
+      });
+
+      startBtn.addEventListener('click', () => {
+        score = 0;
+        timeLeft = 30;
+        scoreDisplay.textContent = 'スコア: 0';
+        timerDisplay.textContent = '残り: 30秒';
+        button.disabled = false;
+        button.textContent = "ジャンプ！";
+        startBtn.disabled = true;
+        title.textContent = '';
+
+        timerInterval = setInterval(() => {
+          timeLeft--;
+          timerDisplay.textContent = `残り: ${timeLeft}秒`;
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            button.disabled = true;
+            button.textContent = "終了！";
+            startBtn.disabled = false;
+            timerDisplay.textContent = `終了！`;
+
+            // 称号判定
+            let message = '';
+            if (score >= 50) {
+              message = '👑 爆アドジャンプ神！！';
+            } else if (score >= 40) {
+              message = '💫 天才ジャンプマスター！';
+            } else if (score >= 30) {
+              message = '💪 ジャンプ職人！';
+            } else if (score >= 20) {
+              message = '🌟 そこそこ飛べるマン';
+            } else if (score >= 10) {
+              message = '✨ 見習いジャンパー';
+            } else {
+              message = '🥚 ヘナチョコアイドル候補生';
+            }
+            title.textContent = `あなたの称号：${message}`;
+          }
+        }, 1000);
+      });
+    });
+  </script>
+</body>
+</html>
