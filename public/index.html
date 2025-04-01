@@ -38,6 +38,18 @@
       font-size: 20px;
       font-weight: bold;
     }
+    #result {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      font-weight: bold;
+      background: rgba(255,255,255,0.9);
+      padding: 20px;
+      border-radius: 16px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -48,6 +60,7 @@
     <button id="shootBtn" class="controlBtn">撃つ！</button>
   </div>
   <div id="timerDisplay">30秒</div>
+  <div id="result"></div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -93,6 +106,22 @@
     let gameInterval;
     let bonusTime = false;
     const timerDisplay = document.getElementById('timerDisplay');
+    const resultDisplay = document.getElementById('result');
+
+    function getTitle(score) {
+      if (score >= 150) return '🌈 神話級アイドル砲神👑';
+      if (score >= 100) return '💥 超次元アイドル破壊王';
+      if (score >= 90) return '🔥 爆裂全弾命中マスター';
+      if (score >= 80) return '💫 音速超えのスターシューター';
+      if (score >= 70) return '🚀 超絶反応アド連射姫';
+      if (score >= 60) return '🌟 極限かわいさ連打職人';
+      if (score >= 50) return '👑 爆アドシューティング神！';
+      if (score >= 40) return '💫 超連射の鬼';
+      if (score >= 30) return '💪 本気のアイドル';
+      if (score >= 20) return '🌟 シューティング見習い';
+      if (score >= 10) return '🥚 まだまだこれから！';
+      return '😢 撃たれ放題アイドル候補生';
+    }
 
     function drawPlayer() {
       ctx.drawImage(currentImg, player.x, player.y, player.width, player.height);
@@ -200,15 +229,12 @@
         gameTime--;
         timerDisplay.textContent = `${gameTime}秒`;
 
-        if (gameTime === 10) {
-          bonusTime = true;
-        } else {
-          bonusTime = false;
-        }
+        bonusTime = gameTime <= 10;
 
         if (gameTime <= 0) {
           clearInterval(gameInterval);
-          alert(`ゲーム終了！スコア: ${score}`);
+          resultDisplay.textContent = `あなたの称号：${getTitle(score)}\nスコア：${score}`;
+          resultDisplay.style.display = 'block';
         }
       }, 1000);
 
