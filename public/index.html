@@ -13,26 +13,33 @@
       display: block;
       background: linear-gradient(to bottom, #ffeef6, #ffffff);
     }
-    #leftBtn, #rightBtn, #shootBtn {
+    #controls {
       position: absolute;
       bottom: 20px;
-      font-size: 20px;
-      padding: 10px;
-      border-radius: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    .controlBtn {
+      font-size: 24px;
+      padding: 16px 32px;
+      border-radius: 16px;
       border: none;
       background: #ffb6c1;
       color: white;
+      flex: 1;
+      margin: 0 5px;
     }
-    #leftBtn { left: 20px; }
-    #rightBtn { left: 100px; }
-    #shootBtn { right: 20px; }
   </style>
 </head>
 <body>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <button id="leftBtn">←</button>
-  <button id="rightBtn">→</button>
-  <button id="shootBtn">撃つ！</button>
+  <div id="controls">
+    <button id="leftBtn" class="controlBtn">←</button>
+    <button id="rightBtn" class="controlBtn">→</button>
+    <button id="shootBtn" class="controlBtn">撃つ！</button>
+  </div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -60,6 +67,9 @@
     const bullets = [];
     const enemies = [];
     let score = 0;
+
+    let moveLeft = false;
+    let moveRight = false;
 
     function drawPlayer() {
       ctx.drawImage(currentImg, player.x, player.y, player.width, player.height);
@@ -122,6 +132,10 @@
 
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (moveLeft) player.x = Math.max(0, player.x - player.speed);
+      if (moveRight) player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+
       drawPlayer();
       drawBullets();
       drawEnemies();
@@ -154,34 +168,30 @@
     setInterval(spawnEnemy, 1000);
     gameLoop();
 
-    document.getElementById('leftBtn').addEventListener('click', () => {
-      player.x = Math.max(0, player.x - player.speed);
-      currentImg = playerImgLeft;
-      setTimeout(() => currentImg = playerImgFront, 200);
-    });
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    const shootBtn = document.getElementById('shootBtn');
 
-    document.getElementById('rightBtn').addEventListener('click', () => {
-      player.x = Math.min(canvas.width - player.width, player.x + player.speed);
-      currentImg = playerImgRight;
-      setTimeout(() => currentImg = playerImgFront, 200);
-    });
+    leftBtn.addEventListener('touchstart', () => { moveLeft = true; currentImg = playerImgLeft; });
+    leftBtn.addEventListener('touchend', () => { moveLeft = false; currentImg = playerImgFront; });
+    rightBtn.addEventListener('touchstart', () => { moveRight = true; currentImg = playerImgRight; });
+    rightBtn.addEventListener('touchend', () => { moveRight = false; currentImg = playerImgFront; });
+    shootBtn.addEventListener('touchstart', () => shoot());
 
-    document.getElementById('shootBtn').addEventListener('click', () => {
-      shoot();
-    });
+    leftBtn.addEventListener('mousedown', () => { moveLeft = true; currentImg = playerImgLeft; });
+    leftBtn.addEventListener('mouseup', () => { moveLeft = false; currentImg = playerImgFront; });
+    rightBtn.addEventListener('mousedown', () => { moveRight = true; currentImg = playerImgRight; });
+    rightBtn.addEventListener('mouseup', () => { moveRight = false; currentImg = playerImgFront; });
+    shootBtn.addEventListener('click', () => shoot());
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') {
-        player.x = Math.max(0, player.x - player.speed);
-        currentImg = playerImgLeft;
-        setTimeout(() => currentImg = playerImgFront, 200);
-      }
-      if (e.key === 'ArrowRight') {
-        player.x = Math.min(canvas.width - player.width, player.x + player.speed);
-        currentImg = playerImgRight;
-        setTimeout(() => currentImg = playerImgFront, 200);
-      }
+      if (e.key === 'ArrowLeft') { moveLeft = true; currentImg = playerImgLeft; }
+      if (e.key === 'ArrowRight') { moveRight = true; currentImg = playerImgRight; }
       if (e.key === ' ' || e.key === 'Enter') shoot();
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft') { moveLeft = false; currentImg = playerImgFront; }
+      if (e.key === 'ArrowRight') { moveRight = false; currentImg = playerImgFront; }
     });
   </script>
 </body>
