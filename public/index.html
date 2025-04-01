@@ -54,6 +54,14 @@
     playerImgRight.src = 'right.png';
     playerImgHeart.src = 'heart.png';
 
+    const enemyImg1 = new Image();
+    const enemyImg2 = new Image();
+    enemyImg1.src = 'note-cute1.png';
+    enemyImg2.src = 'note-cute2.png';
+
+    const bulletImg = new Image();
+    bulletImg.src = 'bullet.png';
+
     let currentImg = playerImgFront;
 
     const player = {
@@ -76,18 +84,15 @@
     }
 
     function drawBullets() {
-      ctx.fillStyle = '#ff80da';
       bullets.forEach((b) => {
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.drawImage(bulletImg, b.x - 10, b.y - 10, 20, 20);
       });
     }
 
     function drawEnemies() {
-      ctx.fillStyle = '#9999ff';
       enemies.forEach((e) => {
-        ctx.fillRect(e.x, e.y, e.width, e.height);
+        const img = e.type === 1 ? enemyImg1 : enemyImg2;
+        ctx.drawImage(img, e.x, e.y, e.width, e.height);
       });
     }
 
@@ -153,15 +158,17 @@
     }
 
     function spawnEnemy() {
-      const width = 30;
-      const height = 30;
+      const width = 40;
+      const height = 40;
+      const type = Math.random() < 0.5 ? 1 : 2;
       enemies.push({
         x: Math.random() * (canvas.width - width),
         y: -height,
         width: width,
         height: height,
         speedY: 2 + Math.random() * 2,
-        speedX: (Math.random() - 0.5) * 4
+        speedX: (Math.random() - 0.5) * 4,
+        type: type
       });
     }
 
