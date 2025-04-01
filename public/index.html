@@ -11,7 +11,7 @@
     }
     canvas {
       display: block;
-      background: linear-gradient(to bottom, #ffeef6, #ffffff);
+      background: url('stage.png') center center / cover no-repeat;
     }
     #controls {
       position: absolute;
@@ -52,6 +52,16 @@
       padding: 20px;
       border-radius: 16px;
       display: none;
+      text-align: center;
+    }
+    #result button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 20px;
+      border: none;
+      border-radius: 12px;
+      background: #ff69b4;
+      color: white;
     }
     #startScreen {
       position: absolute;
@@ -120,19 +130,10 @@
       speed: 5
     };
 
-    const bullets = [];
-    const enemies = [];
-    let score = 0;
-
-    let moveLeft = false;
-    let moveRight = false;
-    let lastShotTime = 0;
+    let bullets, enemies, score, moveLeft, moveRight, lastShotTime, gameTime;
+    let gameInterval, enemySpawnInterval, bonusTime = false;
     const shotCooldown = 250;
 
-    let gameTime = 30;
-    let gameInterval;
-    let enemySpawnInterval;
-    let bonusTime = false;
     const timerDisplay = document.getElementById('timerDisplay');
     const resultDisplay = document.getElementById('result');
 
@@ -149,6 +150,19 @@
       if (score >= 20) return '🌟 シューティング見習い';
       if (score >= 10) return '🥚 まだまだこれから！';
       return '😢 撃たれ放題アイドル候補生';
+    }
+
+    function resetGame() {
+      bullets = [];
+      enemies = [];
+      score = 0;
+      moveLeft = false;
+      moveRight = false;
+      lastShotTime = 0;
+      gameTime = 30;
+      currentImg = playerImgFront;
+      resultDisplay.innerHTML = '';
+      resultDisplay.style.display = 'none';
     }
 
     function drawPlayer() {
@@ -250,7 +264,7 @@
     }
 
     function startGame() {
-      gameTime = 30;
+      resetGame();
       timerDisplay.textContent = `${gameTime}秒`;
 
       gameInterval = setInterval(() => {
@@ -262,7 +276,8 @@
         if (gameTime <= 0) {
           clearInterval(gameInterval);
           clearInterval(enemySpawnInterval);
-          resultDisplay.textContent = `あなたの称号：${getTitle(score)}\nスコア：${score}`;
+          const title = getTitle(score);
+          resultDisplay.innerHTML = `あなたの称号：${title}<br>スコア：${score}<br><button onclick="restartGame()">もう1回！</button>`;
           resultDisplay.style.display = 'block';
         }
       }, 1000);
@@ -276,6 +291,10 @@
           spawnEnemy(1);
         }
       }, 400);
+    }
+
+    function restartGame() {
+      document.getElementById('startScreen').style.display = 'flex';
     }
 
     document.getElementById('startButton').addEventListener('click', () => {
