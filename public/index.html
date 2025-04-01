@@ -31,6 +31,13 @@
       flex: 1;
       margin: 0 5px;
     }
+    #timerDisplay {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -40,6 +47,7 @@
     <button id="rightBtn" class="controlBtn">→</button>
     <button id="shootBtn" class="controlBtn">撃つ！</button>
   </div>
+  <div id="timerDisplay">30秒</div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -79,7 +87,12 @@
     let moveLeft = false;
     let moveRight = false;
     let lastShotTime = 0;
-    const shotCooldown = 250; // 約0.25秒に1発
+    const shotCooldown = 250;
+
+    let gameTime = 30;
+    let gameInterval;
+    let bonusTime = false;
+    const timerDisplay = document.getElementById('timerDisplay');
 
     function drawPlayer() {
       ctx.drawImage(currentImg, player.x, player.y, player.width, player.height);
@@ -162,23 +175,54 @@
       setTimeout(() => currentImg = playerImgFront, 200);
     }
 
-    function spawnEnemy() {
-      const width = 40;
-      const height = 40;
-      const type = Math.random() < 0.5 ? 1 : 2;
-      enemies.push({
-        x: Math.random() * (canvas.width - width),
-        y: -height,
-        width: width,
-        height: height,
-        speedY: 2 + Math.random() * 2,
-        speedX: (Math.random() - 0.5) * 4,
-        type: type
-      });
+    function spawnEnemy(count = 1) {
+      for (let i = 0; i < count; i++) {
+        const width = 40;
+        const height = 40;
+        const type = Math.random() < 0.5 ? 1 : 2;
+        enemies.push({
+          x: Math.random() * (canvas.width - width),
+          y: -height,
+          width: width,
+          height: height,
+          speedY: 2 + Math.random() * 2,
+          speedX: (Math.random() - 0.5) * 4,
+          type: type
+        });
+      }
     }
 
-    setInterval(spawnEnemy, 1000);
+    function startGame() {
+      gameTime = 30;
+      timerDisplay.textContent = `${gameTime}秒`;
+
+      gameInterval = setInterval(() => {
+        gameTime--;
+        timerDisplay.textContent = `${gameTime}秒`;
+
+        if (gameTime === 10) {
+          bonusTime = true;
+        } else {
+          bonusTime = false;
+        }
+
+        if (gameTime <= 0) {
+          clearInterval(gameInterval);
+          alert(`ゲーム終了！スコア: ${score}`);
+        }
+      }, 1000);
+
+      setInterval(() => {
+        if (bonusTime) {
+          spawnEnemy(3);
+        } else {
+          spawnEnemy(1);
+        }
+      }, 800);
+    }
+
     gameLoop();
+    startGame();
 
     const leftBtn = document.getElementById('leftBtn');
     const rightBtn = document.getElementById('rightBtn');
