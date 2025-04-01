@@ -21,6 +21,12 @@ enemyImg2.src = 'note-cute2.png';
 const bulletImg = new Image();
 bulletImg.src = 'bullet.png';
 
+// 効果音
+const shootSound = new Audio('cute_shoot.mp3');
+const hitSound = new Audio('poan_hit.mp3');
+const startSound = new Audio('start_jingle.mp3');
+const explosionSound = new Audio('fancy_bakuad.mp3');
+
 let currentImg = playerImgFront;
 
 const player = {
@@ -140,6 +146,8 @@ function detectCollisions() {
         bullets.splice(bIndex, 1);
         enemies.splice(eIndex, 1);
         effects.push({ x: b.x, y: b.y, size: 5, alpha: 1 });
+        hitSound.currentTime = 0;
+        hitSound.play();
         score++;
       }
     });
@@ -173,6 +181,8 @@ function shoot() {
   if (now - lastShotTime < shotCooldown) return;
   lastShotTime = now;
   bullets.push({ x: player.x + player.width / 2, y: player.y, speed: 7 });
+  shootSound.currentTime = 0;
+  shootSound.play();
   currentImg = playerImgHeart;
   setTimeout(() => currentImg = playerImgFront, 200);
 }
@@ -196,6 +206,7 @@ function spawnEnemy(count = 1) {
 
 function startGame() {
   resetGame();
+  startSound.play();
   timerDisplay.textContent = `${gameTime}秒`;
   gameInterval = setInterval(() => {
     gameTime--;
@@ -204,6 +215,7 @@ function startGame() {
     if (gameTime <= 0) {
       clearInterval(gameInterval);
       clearInterval(enemySpawnInterval);
+      explosionSound.play();
       const title = getTitle(score);
       resultDisplay.innerHTML = `あなたの称号：${title}<br>スコア：${score}<br><button onclick="restartGame()">もう1回！</button>`;
       resultDisplay.style.display = 'block';
