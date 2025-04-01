@@ -34,9 +34,12 @@
     #timerDisplay {
       position: absolute;
       top: 10px;
-      right: 20px;
-      font-size: 20px;
+      left: 10px;
+      font-size: 18px;
       font-weight: bold;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 4px 8px;
+      border-radius: 8px;
     }
     #result {
       position: absolute;
@@ -50,6 +53,27 @@
       border-radius: 16px;
       display: none;
     }
+    #startScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    #startButton {
+      font-size: 28px;
+      padding: 20px 40px;
+      border-radius: 20px;
+      background: #ff69b4;
+      color: white;
+      border: none;
+    }
   </style>
 </head>
 <body>
@@ -61,6 +85,9 @@
   </div>
   <div id="timerDisplay">30秒</div>
   <div id="result"></div>
+  <div id="startScreen">
+    <button id="startButton">ゲームスタート！</button>
+  </div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -104,6 +131,7 @@
 
     let gameTime = 30;
     let gameInterval;
+    let enemySpawnInterval;
     let bonusTime = false;
     const timerDisplay = document.getElementById('timerDisplay');
     const resultDisplay = document.getElementById('result');
@@ -233,22 +261,29 @@
 
         if (gameTime <= 0) {
           clearInterval(gameInterval);
+          clearInterval(enemySpawnInterval);
           resultDisplay.textContent = `あなたの称号：${getTitle(score)}\nスコア：${score}`;
           resultDisplay.style.display = 'block';
         }
       }, 1000);
 
-      setInterval(() => {
-        if (bonusTime) {
+      enemySpawnInterval = setInterval(() => {
+        if (gameTime <= 5) {
+          spawnEnemy(6);
+        } else if (bonusTime) {
           spawnEnemy(3);
         } else {
           spawnEnemy(1);
         }
-      }, 800);
+      }, 400);
     }
 
+    document.getElementById('startButton').addEventListener('click', () => {
+      document.getElementById('startScreen').style.display = 'none';
+      startGame();
+    });
+
     gameLoop();
-    startGame();
 
     const leftBtn = document.getElementById('leftBtn');
     const rightBtn = document.getElementById('rightBtn');
