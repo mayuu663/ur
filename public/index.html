@@ -1,180 +1,187 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>爆アドジャンプゲーム</title>
+  <meta charset="UTF-8">
+  <title>爆アドシューティング</title>
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      padding-top: 60px;
+      margin: 0;
+      overflow: hidden;
       background: #fff8fc;
     }
-
-    #character {
-      width: 300px;
-      transition: transform 0.2s ease;
+    canvas {
+      display: block;
+      background: linear-gradient(to bottom, #ffeef6, #ffffff);
     }
-
-    .jumping {
-      transform: translateY(-30px);
+    #leftBtn, #rightBtn, #shootBtn {
+      position: absolute;
+      bottom: 20px;
+      font-size: 20px;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      background: #ffb6c1;
+      color: white;
     }
-
-    #score, #timer {
-      font-size: 1.8rem;
-      margin: 10px;
-    }
-
-    #bakuaado {
-      position: fixed;
-      top: 30%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 3rem;
-      font-weight: bold;
-      background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 20px rgba(255,255,255,0.9);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 9999;
-      pointer-events: none;
-    }
-
-    #bakuaado.show {
-      opacity: 1;
-      animation: boom 0.6s ease alternate infinite;
-    }
-
-    @keyframes boom {
-      0% { transform: translate(-50%, -10px) scale(1); }
-      100% { transform: translate(-50%, 10px) scale(1.05); }
-    }
-
-    button {
-      font-size: 16px;
-      padding: 15px 30px;
-      margin-top: 20px;
-      border-radius: 12px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    #title {
-      font-size: 1.5rem;
-      margin-top: 20px;
-    }
+    #leftBtn { left: 20px; }
+    #rightBtn { left: 100px; }
+    #shootBtn { right: 20px; }
   </style>
 </head>
 <body>
-  <h1 id="username">@読み込み中...</h1>
-  <div id="timer">残り: 30秒</div>
-  <img id="character" src="https://cdn.glitch.global/cb9802f0-cf75-450e-8d7f-d270c4ff372d/idol-stand.PNG?v=1743528514014" alt="アイドル" />
-  <p id="score">スコア: 0</p>
-  <button id="tap" disabled>スタートを押してね</button>
-  <br><br>
-  <button id="start">スタート！</button>
-  <div id="title"></div>
-  <div id="bakuaado">爆アド！！</div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <button id="leftBtn">←</button>
+  <button id="rightBtn">→</button>
+  <button id="shootBtn">撃つ！</button>
 
-  <audio id="jumpSound" src="https://cdn.glitch.global/cb9802f0-cf75-450e-8d7f-d270c4ff372d/jump-sound.mp3?v=1743533179006" preload="auto"></audio>
-  <audio id="boomSound" src="https://cdn.glitch.global/cb9802f0-cf75-450e-8d7f-d270c4ff372d/boom-sound.mp3?v=1743533164710" preload="auto"></audio>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-  <script type="module">
+    const playerImgFront = new Image();
+    const playerImgLeft = new Image();
+    const playerImgRight = new Image();
+    const playerImgHeart = new Image();
+    playerImgFront.src = 'front.png';
+    playerImgLeft.src = 'left.png';
+    playerImgRight.src = 'right.png';
+    playerImgHeart.src = 'heart.png';
+
+    let currentImg = playerImgFront;
+
+    const player = {
+      x: 180,
+      y: 500,
+      width: 60,
+      height: 60,
+      speed: 5
+    };
+
+    const bullets = [];
+    const enemies = [];
     let score = 0;
-    let timeLeft = 30;
-    let timerInterval = null;
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      let username = '@Anonymous';
-      try {
-        const { sdk } = window.farcaster;
-        const context = await sdk.getContext();
-        username = `@${context?.user?.username ?? 'Anonymous'}`;
-        console.log('Farcaster context:', context);
-      } catch (e) {
-        console.log('Farcaster context取得失敗（ブラウザテスト用）');
-      }
-      document.getElementById('username').textContent = username;
+    function drawPlayer() {
+      ctx.drawImage(currentImg, player.x, player.y, player.width, player.height);
+    }
 
-      const character = document.getElementById('character');
-      const scoreDisplay = document.getElementById('score');
-      const button = document.getElementById('tap');
-      const timerDisplay = document.getElementById('timer');
-      const startBtn = document.getElementById('start');
-      const jumpSound = document.getElementById('jumpSound');
-      const boomSound = document.getElementById('boomSound');
-      const baku = document.getElementById('bakuaado');
-      const title = document.getElementById('title');
-
-      const standImg = "https://cdn.glitch.global/cb9802f0-cf75-450e-8d7f-d270c4ff372d/idol-stand.PNG?v=1743528514014";
-      const jumpImg = "https://cdn.glitch.global/cb9802f0-cf75-450e-8d7f-d270c4ff372d/dol-jump.PNG?v=1743528505524";
-
-      button.addEventListener('click', () => {
-        if (timeLeft <= 0) return;
-
-        score++;
-        scoreDisplay.textContent = `スコア: ${score}`;
-        character.src = jumpImg;
-        character.classList.add('jumping');
-
-        jumpSound.currentTime = 0;
-        jumpSound.play();
-
-        if (score % 10 === 0) {
-          baku.classList.add('show');
-          boomSound.currentTime = 0;
-          boomSound.play();
-          setTimeout(() => baku.classList.remove('show'), 1200);
-        }
-
-        setTimeout(() => {
-          character.src = standImg;
-          character.classList.remove('jumping');
-        }, 200);
+    function drawBullets() {
+      ctx.fillStyle = '#ff80da';
+      bullets.forEach((b) => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
+        ctx.fill();
       });
+    }
 
-      startBtn.addEventListener('click', () => {
-        score = 0;
-        timeLeft = 30;
-        scoreDisplay.textContent = 'スコア: 0';
-        timerDisplay.textContent = '残り: 30秒';
-        button.disabled = false;
-        button.textContent = "ジャンプ！";
-        startBtn.disabled = true;
-        title.textContent = '';
+    function drawEnemies() {
+      ctx.fillStyle = '#9999ff';
+      enemies.forEach((e) => {
+        ctx.fillRect(e.x, e.y, e.width, e.height);
+      });
+    }
 
-        timerInterval = setInterval(() => {
-          timeLeft--;
-          timerDisplay.textContent = `残り: ${timeLeft}秒`;
-          if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            button.disabled = true;
-            button.textContent = "終了！";
-            startBtn.disabled = false;
-            timerDisplay.textContent = `終了！`;
+    function updateBullets() {
+      bullets.forEach((b, index) => {
+        b.y -= b.speed;
+        if (b.y < 0) bullets.splice(index, 1);
+      });
+    }
 
-            // 称号判定
-            let message = '';
-            if (score >= 50) {
-              message = '👑 爆アドジャンプ神！！';
-            } else if (score >= 40) {
-              message = '💫 天才ジャンプマスター！';
-            } else if (score >= 30) {
-              message = '💪 ジャンプ職人！';
-            } else if (score >= 20) {
-              message = '🌟 そこそこ飛べるマン';
-            } else if (score >= 10) {
-              message = '✨ 見習いジャンパー';
-            } else {
-              message = '🥚 ヘナチョコアイドル候補生';
-            }
-            title.textContent = `あなたの称号：${message}`;
+    function updateEnemies() {
+      enemies.forEach((e, index) => {
+        e.y += e.speedY;
+        e.x += e.speedX;
+        if (e.x < 0 || e.x > canvas.width - e.width) e.speedX *= -1;
+        if (e.y > canvas.height) enemies.splice(index, 1);
+      });
+    }
+
+    function detectCollisions() {
+      bullets.forEach((b, bIndex) => {
+        enemies.forEach((e, eIndex) => {
+          if (
+            b.x > e.x &&
+            b.x < e.x + e.width &&
+            b.y > e.y &&
+            b.y < e.y + e.height
+          ) {
+            bullets.splice(bIndex, 1);
+            enemies.splice(eIndex, 1);
+            score++;
           }
-        }, 1000);
+        });
       });
+    }
+
+    function drawScore() {
+      ctx.fillStyle = '#000';
+      ctx.font = '20px sans-serif';
+      ctx.fillText(`スコア: ${score}`, 10, 30);
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawBullets();
+      drawEnemies();
+      drawScore();
+      updateBullets();
+      updateEnemies();
+      detectCollisions();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function shoot() {
+      bullets.push({ x: player.x + player.width / 2, y: player.y, speed: 7 });
+      currentImg = playerImgHeart;
+      setTimeout(() => currentImg = playerImgFront, 200);
+    }
+
+    function spawnEnemy() {
+      const width = 30;
+      const height = 30;
+      enemies.push({
+        x: Math.random() * (canvas.width - width),
+        y: -height,
+        width: width,
+        height: height,
+        speedY: 2 + Math.random() * 2,
+        speedX: (Math.random() - 0.5) * 4
+      });
+    }
+
+    setInterval(spawnEnemy, 1000);
+    gameLoop();
+
+    document.getElementById('leftBtn').addEventListener('click', () => {
+      player.x = Math.max(0, player.x - player.speed);
+      currentImg = playerImgLeft;
+      setTimeout(() => currentImg = playerImgFront, 200);
+    });
+
+    document.getElementById('rightBtn').addEventListener('click', () => {
+      player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+      currentImg = playerImgRight;
+      setTimeout(() => currentImg = playerImgFront, 200);
+    });
+
+    document.getElementById('shootBtn').addEventListener('click', () => {
+      shoot();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') {
+        player.x = Math.max(0, player.x - player.speed);
+        currentImg = playerImgLeft;
+        setTimeout(() => currentImg = playerImgFront, 200);
+      }
+      if (e.key === 'ArrowRight') {
+        player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+        currentImg = playerImgRight;
+        setTimeout(() => currentImg = playerImgFront, 200);
+      }
+      if (e.key === ' ' || e.key === 'Enter') shoot();
     });
   </script>
 </body>
