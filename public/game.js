@@ -45,6 +45,8 @@ let bonusTime = false;
 const shotCooldown = 250;
 
 const timerDisplay = document.getElementById('timerDisplay');
+timerDisplay.style.left = '300px';
+timerDisplay.style.top = '10px';
 const resultDisplay = document.getElementById('result');
 
 function getTitle(score) {
