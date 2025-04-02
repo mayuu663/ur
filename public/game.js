@@ -1,4 +1,9 @@
 // ✅ game.js（完全フルバージョン / スコアとタイマー見やすくピンクに）
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  return parts.length === 2 ? decodeURIComponent(parts.pop().split(';').shift()) : null;
+}
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
