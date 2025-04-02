@@ -1,80 +1,42 @@
 <!DOCTYPE html>
-<html lang="ja">
-<!-- Farcaster Frame Meta Tags -->
-<meta name="fc:frame" content="vNext">
-<meta name="fc:frame:image" content="https://ur-eight.vercel.app/preview.png">
-<meta name="fc:frame:button:1" content="START">
-<meta name="fc:frame:post_url" content="https://ur-eight.vercel.app/">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>爆アドシューティング</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IDOL Shooter</title>
+  <meta name="fc:frame" content="vNext">
+  <meta name="fc:frame:image" content="https://ur-eight.vercel.app/preview.png">
+  <meta name="fc:frame:button:1" content="START">
+  <meta name="fc:frame:post_url" content="https://ur-eight.vercel.app/">
   <style>
     body {
       margin: 0;
-      overflow: hidden;
-      background: #fff8fc;
+      font-family: 'Arial', sans-serif;
+      background-color: #fff;
     }
     #gameCanvas {
       display: block;
-      position: absolute;
-      z-index: 1;
-      background-image: url('stage.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
-    #controls {
-      position: absolute;
-      bottom: 20px;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 20px;
-      z-index: 2;
-    }
-    .controlBtn {
-      font-size: 24px;
-      padding: 16px 32px;
-      border-radius: 16px;
-      border: none;
-      background: #ffb6c1;
-      color: white;
-      flex: 1;
-      margin: 0 5px;
+      margin: 0 auto;
+      background-color: #f0f0f0;
     }
     #timerDisplay {
       position: absolute;
-      top: 10px;
-      left: 10px;
+      color: #000;
       font-size: 18px;
       font-weight: bold;
-      background: rgba(255, 255, 255, 0.7);
-      padding: 4px 8px;
-      border-radius: 8px;
-      z-index: 2;
     }
     #result {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 24px;
-      font-weight: bold;
-      background: rgba(255,255,255,0.9);
+      background: #fff;
       padding: 20px;
-      border-radius: 16px;
-      display: none;
-      text-align: center;
-      z-index: 3;
-    }
-    #result button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 20px;
-      border: none;
+      border: 2px solid #000;
       border-radius: 12px;
-      background: #ff69b4;
-      color: white;
+      text-align: center;
+      font-size: 18px;
+      display: none;
     }
     #startScreen {
       position: absolute;
@@ -82,35 +44,41 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255,255,255,0.95);
+      background-color: rgba(0, 0, 0, 0.75);
+      color: white;
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
-      z-index: 5;
+      align-items: center;
+      flex-direction: column;
+      z-index: 999;
     }
     #startButton {
-      font-size: 28px;
-      padding: 20px 40px;
-      border-radius: 20px;
-      background: #ff69b4;
-      color: white;
-      border: none;
+      font-size: 20px;
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+    .controlBtn {
+      font-size: 20px;
+      padding: 5px 10px;
+      margin: 10px;
     }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <div id="controls">
-    <button id="leftBtn" class="controlBtn">←</button>
-    <button id="rightBtn" class="controlBtn">→</button>
-    <button id="shootBtn" class="controlBtn">撃つ！</button>
-  </div>
-  <div id="timerDisplay">30秒</div>
-  <div id="result"></div>
   <div id="startScreen">
-    <button id="startButton">ゲームスタート！</button>
+    <h1>IDOL Shooter</h1>
+    <button id="startButton">Start Game</button>
   </div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div id="timerDisplay"></div>
+  <div id="result"></div>
+
+  <div style="text-align:center; margin-top:10px">
+    <button id="leftBtn" class="controlBtn">◀️</button>
+    <button id="shootBtn" class="controlBtn">❤️</button>
+    <button id="rightBtn" class="controlBtn">▶️</button>
+  </div>
+
   <script src="game.js"></script>
 </body>
 </html>
