@@ -1,9 +1,12 @@
-// game.js - 完全版修正済み
+// game.js（修正済みフルコード）
+// 内容：ボス300x300、上部出現、ランダム左右ふらふら、ごちゃごちゃ動き、音符削除、時間切れで終了修正
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 400;
 canvas.height = 600;
 
+// プレイヤー画像
 const playerImgFront = new Image();
 const playerImgLeft = new Image();
 const playerImgRight = new Image();
@@ -23,21 +26,14 @@ bossImg.src = 'boss.png';
 const bulletImg = new Image();
 bulletImg.src = 'bullet.png';
 
+// 音
 const shootSound = new Audio('cute_shoot.mp3');
 const hitSound = new Audio('poan_hit.mp3');
 const startSound = new Audio('start_jingle.mp3');
 const explosionSound = new Audio('fancy_bakuad.mp3');
 
 let currentImg = playerImgFront;
-
-const player = {
-  x: 180,
-  y: 500,
-  width: 60,
-  height: 60,
-  speed: 5
-};
-
+const player = { x: 180, y: 500, width: 60, height: 60, speed: 5 };
 let bullets = [];
 let enemies = [];
 let effects = [];
@@ -54,7 +50,7 @@ const shotCooldown = 250;
 let isBossPhase = false;
 let boss = null;
 let bossHP = 30;
-let bossNoteTimer = 0;
+let bossMoveTimer = 0;
 
 const timerDisplay = document.getElementById('timerDisplay');
 timerDisplay.style.left = '300px';
@@ -94,49 +90,22 @@ function resetGame() {
   document.getElementById('bossText')?.remove();
 }
 
-function drawPlayer() {
-  ctx.drawImage(currentImg, player.x, player.y, player.width, player.height);
-}
-
-function drawBullets() {
-  bullets.forEach((b) => {
-    ctx.drawImage(bulletImg, b.x - 10, b.y - 10, 20, 20);
-  });
-}
-
-function drawEnemies() {
-  enemies.forEach((e) => {
-    const img = e.type === 1 ? enemyImg1 : enemyImg2;
-    ctx.drawImage(img, e.x, e.y, e.width, e.height);
-  });
-}
-
-function drawBoss() {
-  if (boss) ctx.drawImage(bossImg, boss.x, boss.y, boss.width, boss.height);
-}
-
-function drawEffects() {
-  effects.forEach((fx, i) => {
-    ctx.beginPath();
-    ctx.arc(fx.x, fx.y, fx.size, 0, Math.PI * 2);
-    ctx.fillStyle = fx.color || `rgba(255,192,203,${fx.alpha})`;
-    ctx.fill();
-  });
-}
+function drawPlayer() { ctx.drawImage(currentImg, player.x, player.y, player.width, player.height); }
+function drawBullets() { bullets.forEach((b) => { ctx.drawImage(bulletImg, b.x - 10, b.y - 10, 20, 20); }); }
+function drawEnemies() { enemies.forEach((e) => { const img = e.type === 1 ? enemyImg1 : enemyImg2; ctx.drawImage(img, e.x, e.y, e.width, e.height); }); }
+function drawBoss() { if (boss) ctx.drawImage(bossImg, boss.x, boss.y, boss.width, boss.height); }
+function drawEffects() { effects.forEach((fx, i) => { ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.size, 0, Math.PI * 2); ctx.fillStyle = fx.color || `rgba(255,192,203,${fx.alpha})`; ctx.fill(); }); }
 
 function updateBullets() {
-  bullets.forEach((b, index) => {
-    b.y -= b.speed;
-    if (b.y < 0) bullets.splice(index, 1);
-  });
+  bullets.forEach((b, i) => { b.y -= b.speed; if (b.y < 0) bullets.splice(i, 1); });
 }
 
 function updateEnemies() {
-  enemies.forEach((e, index) => {
+  enemies.forEach((e, i) => {
     e.y += e.speedY;
     e.x += e.speedX;
     if (e.x < 0 || e.x > canvas.width - e.width) e.speedX *= -1;
-    if (e.y > canvas.height) enemies.splice(index, 1);
+    if (e.y > canvas.height) enemies.splice(i, 1);
   });
 }
 
@@ -144,19 +113,9 @@ function updateBoss() {
   if (boss) {
     boss.x += boss.speedX;
     if (boss.x < 0 || boss.x > canvas.width - boss.width) boss.speedX *= -1;
-
-    bossNoteTimer++;
-    if (bossNoteTimer % 30 === 0) {
-      enemies.push({
-        x: boss.x + boss.width / 2,
-        y: boss.y + boss.height,
-        width: 30,
-        height: 30,
-        speedY: 3,
-        speedX: 0,
-        type: Math.random() < 0.5 ? 1 : 2,
-        isBossNote: true
-      });
+    bossMoveTimer++;
+    if (bossMoveTimer % 30 === 0) {
+      boss.speedX = Math.random() < 0.5 ? -2 : 2;
     }
   }
 }
@@ -206,12 +165,12 @@ function detectCollisions() {
     }
     enemies.forEach((e, eIndex) => {
       if (b.x > e.x && b.x < e.x + e.width && b.y > e.y && b.y < e.y + e.height) {
-        if (!e.isBossNote) score++;
         bullets.splice(bIndex, 1);
         enemies.splice(eIndex, 1);
         effects.push({ x: b.x, y: b.y, size: 5, alpha: 1 });
         hitSound.currentTime = 0;
         hitSound.play();
+        score++;
       }
     });
   });
@@ -292,10 +251,10 @@ function startGame() {
       isBossPhase = true;
       gameTime = 30;
       boss = {
-        x: 100,
-        y: 200,
-        width: 100,
-        height: 130,
+        x: 50,
+        y: 50,
+        width: 300,
+        height: 300,
         speedX: 2
       };
       showBossText('ようこそ…本当のライブへ');
