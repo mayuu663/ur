@@ -1,8 +1,5 @@
-// game.js（最新版）
-// 修正内容：
-// ・ボス画像を200x200に変更（ファイル名 boss200.png）
-// ・ゲーム終了後（タイマー0）に攻撃・撃破不可
-// ・isGameOver フラグ追加で制御
+// ✅ game.js（HPゲージ付き完全フルコード）
+// 含む：150x150ボス、速度調整、攻撃制限、HPバー表示！
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -25,7 +22,7 @@ const bulletImg = new Image();
 
 enemyImg1.src = 'note-cute1.png';
 enemyImg2.src = 'note-cute2.png';
-bossImg.src = 'boss200.png';
+bossImg.src = 'boss150.png';
 bulletImg.src = 'bullet.png';
 
 const shootSound = new Audio('cute_shoot.mp3');
@@ -99,6 +96,23 @@ function drawEnemies() { enemies.forEach((e) => { const img = e.type === 1 ? ene
 function drawBoss() { if (boss) ctx.drawImage(bossImg, boss.x, boss.y, boss.width, boss.height); }
 function drawEffects() { effects.forEach((fx, i) => { ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.size, 0, Math.PI * 2); ctx.fillStyle = fx.color || `rgba(255,192,203,${fx.alpha})`; ctx.fill(); }); }
 
+function drawBossHpBar() {
+  if (boss && bossHP > 0) {
+    const barWidth = 200;
+    const barHeight = 15;
+    const x = canvas.width / 2 - barWidth / 2;
+    const y = 20;
+    const hpRatio = bossHP / 30;
+
+    ctx.fillStyle = 'gray';
+    ctx.fillRect(x, y, barWidth, barHeight);
+    ctx.fillStyle = 'red';
+    ctx.fillRect(x, y, barWidth * hpRatio, barHeight);
+    ctx.strokeStyle = '#000';
+    ctx.strokeRect(x, y, barWidth, barHeight);
+  }
+}
+
 function updateBullets() {
   bullets.forEach((b, i) => { b.y -= b.speed; if (b.y < 0) bullets.splice(i, 1); });
 }
@@ -118,7 +132,7 @@ function updateBoss() {
     if (boss.x < 0 || boss.x > canvas.width - boss.width) boss.speedX *= -1;
     bossMoveTimer++;
     if (bossMoveTimer % 30 === 0) {
-      boss.speedX = Math.random() < 0.5 ? -2 : 2;
+      boss.speedX = Math.random() < 0.5 ? -1.5 : 1.5;
     }
   }
 }
@@ -196,6 +210,7 @@ function gameLoop() {
   drawBullets();
   drawEnemies();
   drawBoss();
+  drawBossHpBar();
   drawEffects();
   drawScore();
   updateBullets();
@@ -261,9 +276,9 @@ function startGame() {
       boss = {
         x: 50,
         y: 50,
-        width: 200,
-        height: 200,
-        speedX: 2
+        width: 150,
+        height: 150,
+        speedX: 1.5
       };
       showBossText('ようこそ…本当のライブへ');
     }
