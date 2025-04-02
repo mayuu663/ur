@@ -23,7 +23,6 @@ bossImg.src = 'boss.png';
 const bulletImg = new Image();
 bulletImg.src = 'bullet.png';
 
-// 効果音
 const shootSound = new Audio('cute_shoot.mp3');
 const hitSound = new Audio('poan_hit.mp3');
 const startSound = new Audio('start_jingle.mp3');
@@ -157,7 +156,6 @@ function updateBoss() {
         speedX: 0,
         type: Math.random() < 0.5 ? 1 : 2
       });
-      score++;
     }
   }
 }
@@ -200,6 +198,7 @@ function detectCollisions() {
       showBossText('くっ…♡');
       if (bossHP <= 0) {
         explosionSound.play();
+        score += 40;
         showBossText('認めてあげる…ちょっとだけね');
         endGame();
       }
@@ -296,7 +295,7 @@ function startGame() {
     }
 
     if (isBossPhase && gameTime <= 0 && bossHP > 0) {
-      resultDisplay.innerHTML = `時間切れ…敗北です💀<br><button onclick="restartGame()">リベンジ！</button>`;
+      resultDisplay.innerHTML = `時間切れ…敗北です💀<br><button onclick=\"restartGame()\">リベンジ！</button>`;
       resultDisplay.style.display = 'block';
       clearInterval(gameInterval);
       clearInterval(enemySpawnInterval);
@@ -320,7 +319,7 @@ function endGame() {
   clearInterval(gameInterval);
   clearInterval(enemySpawnInterval);
   const title = getTitle(score);
-  resultDisplay.innerHTML = `あなたの称号：${title}<br>スコア：${score}<br><button onclick="restartGame()">もう1回！</button>`;
+  resultDisplay.innerHTML = `あなたの称号：${title}<br>スコア：${score}<br><button onclick=\"restartGame()\">もう1回！</button>`;
   resultDisplay.style.display = 'block';
 }
 
