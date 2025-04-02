@@ -1,4 +1,4 @@
-// game.js
+// game.js - 完全版修正済み
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 400;
@@ -154,7 +154,8 @@ function updateBoss() {
         height: 30,
         speedY: 3,
         speedX: 0,
-        type: Math.random() < 0.5 ? 1 : 2
+        type: Math.random() < 0.5 ? 1 : 2,
+        isBossNote: true
       });
     }
   }
@@ -189,9 +190,7 @@ function showBossText(text) {
 
 function detectCollisions() {
   bullets.forEach((b, bIndex) => {
-    if (boss &&
-      b.x > boss.x && b.x < boss.x + boss.width &&
-      b.y > boss.y && b.y < boss.y + boss.height) {
+    if (boss && b.x > boss.x && b.x < boss.x + boss.width && b.y > boss.y && b.y < boss.y + boss.height) {
       bullets.splice(bIndex, 1);
       effects.push({ x: b.x, y: b.y, size: 20, alpha: 1.2, color: 'rgba(255,0,200,0.8)' });
       bossHP--;
@@ -200,21 +199,19 @@ function detectCollisions() {
         explosionSound.play();
         score += 40;
         showBossText('認めてあげる…ちょっとだけね');
+        boss = null;
         endGame();
       }
       return;
     }
     enemies.forEach((e, eIndex) => {
-      if (
-        b.x > e.x && b.x < e.x + e.width &&
-        b.y > e.y && b.y < e.y + e.height
-      ) {
+      if (b.x > e.x && b.x < e.x + e.width && b.y > e.y && b.y < e.y + e.height) {
+        if (!e.isBossNote) score++;
         bullets.splice(bIndex, 1);
         enemies.splice(eIndex, 1);
         effects.push({ x: b.x, y: b.y, size: 5, alpha: 1 });
         hitSound.currentTime = 0;
         hitSound.play();
-        score++;
       }
     });
   });
@@ -277,6 +274,16 @@ function startGame() {
   startSound.play();
   timerDisplay.textContent = `${gameTime}秒`;
   gameInterval = setInterval(() => {
+    if (gameTime <= 0) {
+      if (isBossPhase && bossHP > 0) {
+        resultDisplay.innerHTML = `時間切れ…敗北です💀<br><button onclick=\"restartGame()\">リベンジ！</button>`;
+        resultDisplay.style.display = 'block';
+        clearInterval(gameInterval);
+        clearInterval(enemySpawnInterval);
+      }
+      return;
+    }
+
     gameTime--;
     timerDisplay.textContent = `${gameTime}秒`;
     bonusTime = gameTime <= 10;
@@ -292,13 +299,6 @@ function startGame() {
         speedX: 2
       };
       showBossText('ようこそ…本当のライブへ');
-    }
-
-    if (isBossPhase && gameTime <= 0 && bossHP > 0) {
-      resultDisplay.innerHTML = `時間切れ…敗北です💀<br><button onclick=\"restartGame()\">リベンジ！</button>`;
-      resultDisplay.style.display = 'block';
-      clearInterval(gameInterval);
-      clearInterval(enemySpawnInterval);
     }
   }, 1000);
 
