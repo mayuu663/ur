@@ -352,3 +352,70 @@ document.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowLeft') { moveLeft = false; currentImg = playerImgFront; }
   if (e.key === 'ArrowRight') { moveRight = false; currentImg = playerImgFront; }
 });
+// game.js
+// （省略：他のコードはそのまま）
+
+function updateBoss() {
+  if (boss) {
+    boss.x += boss.speedX;
+    if (boss.x < 0 || boss.x > canvas.width - boss.width) boss.speedX *= -1;
+
+    bossNoteTimer++;
+    if (bossNoteTimer % 30 === 0) {
+      enemies.push({
+        x: boss.x + boss.width / 2,
+        y: boss.y + boss.height,
+        width: 30,
+        height: 30,
+        speedY: 3,
+        speedX: 0,
+        type: 1
+      });
+      score++;
+    }
+  }
+}
+
+function startGame() {
+  resetGame();
+  startSound.play();
+  timerDisplay.textContent = `${gameTime}秒`;
+  gameInterval = setInterval(() => {
+    gameTime--;
+    timerDisplay.textContent = `${gameTime}秒`;
+    bonusTime = gameTime <= 10;
+
+    if (!isBossPhase && gameTime <= 0) {
+      isBossPhase = true;
+      gameTime = 30;
+      boss = {
+        x: 100,
+        y: 200,
+        width: 100,
+        height: 130,
+        speedX: 2
+      };
+      showBossText('ようこそ…本当のライブへ');
+    }
+
+    if (isBossPhase && gameTime <= 0 && bossHP > 0) {
+      resultDisplay.innerHTML = `時間切れ…敗北です💀<br><button onclick="restartGame()">リベンジ！</button>`;
+      resultDisplay.style.display = 'block';
+      clearInterval(gameInterval);
+      clearInterval(enemySpawnInterval);
+    }
+  }, 1000);
+
+  enemySpawnInterval = setInterval(() => {
+    if (!isBossPhase) {
+      if (gameTime <= 5) {
+        spawnEnemy(6);
+      } else if (bonusTime) {
+        spawnEnemy(3);
+      } else {
+        spawnEnemy(1);
+      }
+    }
+  }, 400);
+}
+
