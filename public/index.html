@@ -14,17 +14,27 @@
       font-family: 'Arial', sans-serif;
       background: url('/stage.png') no-repeat center center;
       background-size: cover;
+      background-attachment: fixed;
     }
     #gameCanvas {
       display: block;
       margin: 0 auto;
       background-color: transparent;
     }
-    #timerDisplay {
+    #timerDisplay, #scoreDisplay {
       position: absolute;
-      color: #000;
-      font-size: 18px;
+      top: 10px;
+      font-size: 22px;
       font-weight: bold;
+      color: #fff;
+      text-shadow: 2px 2px 4px #000;
+      z-index: 1000;
+    }
+    #timerDisplay {
+      right: 10px;
+    }
+    #scoreDisplay {
+      left: 10px;
     }
     #result {
       position: absolute;
@@ -72,6 +82,7 @@
   </div>
   <canvas id="gameCanvas" width="400" height="600"></canvas>
   <div id="timerDisplay"></div>
+  <div id="scoreDisplay"></div>
   <div id="result"></div>
 
   <div style="text-align:center; margin-top:10px">
