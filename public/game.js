@@ -1,5 +1,4 @@
-// ✅ game.js（HPゲージ付き完全フルコード）
-// 含む：150x150ボス、速度調整、攻撃制限、HPバー表示！
+// ✅ game.js（完全フルバージョン / スコアとタイマー見やすく分離済）
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -52,7 +51,8 @@ let bossMoveTimer = 0;
 let isGameOver = false;
 
 const timerDisplay = document.getElementById('timerDisplay');
-timerDisplay.style.left = '300px';
+const scoreDisplay = document.getElementById('scoreDisplay');
+timerDisplay.style.right = '10px';
 timerDisplay.style.top = '10px';
 const resultDisplay = document.getElementById('result');
 
@@ -101,7 +101,7 @@ function drawBossHpBar() {
     const barWidth = 200;
     const barHeight = 15;
     const x = canvas.width / 2 - barWidth / 2;
-    const y = 20;
+    const y = 40;
     const hpRatio = bossHP / 30;
 
     ctx.fillStyle = 'gray';
@@ -195,9 +195,7 @@ function detectCollisions() {
 }
 
 function drawScore() {
-  ctx.fillStyle = '#000';
-  ctx.font = '20px sans-serif';
-  ctx.fillText(`スコア: ${score}`, 10, 30);
+  if (scoreDisplay) scoreDisplay.textContent = `Score: ${score}`;
 }
 
 function gameLoop() {
