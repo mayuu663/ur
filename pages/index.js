@@ -1,28 +1,8 @@
-// ✅ pages/index.js - 完全復活テンプレ！
-import Head from "next/head";
-import Script from "next/script";
-
 export default function Home() {
   return (
-    <>
-      <Head>
-        <title>IDOL Shooter</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      </Head>
-
-      <div style={{ textAlign: "center", marginTop: "10px" }}>
-        <h1>IDOL Shooter 💖🎶</h1>
-      </div>
-
-      <canvas
-        id="gameCanvas"
-        width="480"
-        height="640"
-        style={{ display: "block", margin: "0 auto", background: "#000" }}
-      ></canvas>
-
-      {/* game.js を読み込む！ */}
-      <Script src="/game.js" strategy="afterInteractive" />
-    </>
+    <div style={{ textAlign: "center", marginTop: "100px", color: "hotpink" }}>
+      <h1>IDOL Shooter is back! 💖</h1>
+      <p>ページが表示されてるならOK！</p>
+    </div>
   );
 }
