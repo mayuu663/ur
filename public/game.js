@@ -15,8 +15,12 @@ playerImgHeart.src = 'heart.png';
 
 const enemyImg1 = new Image();
 const enemyImg2 = new Image();
+const bossImg = new Image();
+const noteImg = new Image();
 enemyImg1.src = 'note-cute1.png';
 enemyImg2.src = 'note-cute2.png';
+bossImg.src = 'boss.png';
+noteImg.src = 'note.png';
 
 const bulletImg = new Image();
 bulletImg.src = 'bullet.png';
@@ -50,6 +54,11 @@ let enemySpawnInterval;
 let bonusTime = false;
 const shotCooldown = 250;
 
+let isBossPhase = false;
+let boss = null;
+let bossHP = 30;
+let bossNoteTimer = 0;
+
 const timerDisplay = document.getElementById('timerDisplay');
 timerDisplay.style.left = '300px';
 timerDisplay.style.top = '10px';
@@ -79,9 +88,13 @@ function resetGame() {
   moveRight = false;
   lastShotTime = 0;
   gameTime = 30;
+  boss = null;
+  bossHP = 30;
+  isBossPhase = false;
   currentImg = playerImgFront;
   resultDisplay.innerHTML = '';
   resultDisplay.style.display = 'none';
+  document.getElementById('bossText')?.remove();
 }
 
 function drawPlayer() {
@@ -99,6 +112,10 @@ function drawEnemies() {
     const img = e.type === 1 ? enemyImg1 : enemyImg2;
     ctx.drawImage(img, e.x, e.y, e.width, e.height);
   });
+}
+
+function drawBoss() {
+  if (boss) ctx.drawImage(bossImg, boss.x, boss.y, boss.width, boss.height);
 }
 
 function drawEffects() {
@@ -126,6 +143,28 @@ function updateEnemies() {
   });
 }
 
+function updateBoss() {
+  if (boss) {
+    boss.y += boss.speedY;
+    boss.x += boss.speedX;
+    if (boss.x < 0 || boss.x > canvas.width - boss.width) boss.speedX *= -1;
+
+    bossNoteTimer++;
+    if (bossNoteTimer % 30 === 0) {
+      enemies.push({
+        x: boss.x + boss.width / 2,
+        y: boss.y + boss.height,
+        width: 30,
+        height: 30,
+        speedY: 3,
+        speedX: 0,
+        type: 1
+      });
+      score++;
+    }
+  }
+}
+
 function updateEffects() {
   effects.forEach((fx, i) => {
     fx.alpha -= 0.05;
@@ -134,23 +173,40 @@ function updateEffects() {
   });
 }
 
+function showBossText(text) {
+  const textEl = document.createElement('div');
+  textEl.id = 'bossText';
+  textEl.textContent = text;
+  textEl.style.position = 'absolute';
+  textEl.style.top = '50%';
+  textEl.style.left = '50%';
+  textEl.style.transform = 'translate(-50%, -50%)';
+  textEl.style.fontSize = '24px';
+  textEl.style.fontWeight = 'bold';
+  textEl.style.background = 'rgba(0,0,0,0.6)';
+  textEl.style.color = '#fff';
+  textEl.style.padding = '10px';
+  textEl.style.borderRadius = '12px';
+  textEl.style.zIndex = '10';
+  document.body.appendChild(textEl);
+  setTimeout(() => textEl.remove(), 1200);
+}
+
 function detectCollisions() {
   bullets.forEach((b, bIndex) => {
-    enemies.forEach((e, eIndex) => {
-      if (
-        b.x > e.x &&
-        b.x < e.x + e.width &&
-        b.y > e.y &&
-        b.y < e.y + e.height
-      ) {
-        bullets.splice(bIndex, 1);
-        enemies.splice(eIndex, 1);
-        effects.push({ x: b.x, y: b.y, size: 5, alpha: 1 });
-        hitSound.currentTime = 0;
-        hitSound.play();
-        score++;
+    if (boss &&
+      b.x > boss.x && b.x < boss.x + boss.width &&
+      b.y > boss.y && b.y < boss.y + boss.height) {
+      bullets.splice(bIndex, 1);
+      effects.push({ x: b.x, y: b.y, size: 5, alpha: 1 });
+      bossHP--;
+      showBossText('くっ…♡');
+      if (bossHP <= 0) {
+        explosionSound.play();
+        showBossText('認めてあげる…ちょっとだけね');
+        endGame();
       }
-    });
+    }
   });
 }
 
@@ -167,11 +223,13 @@ function gameLoop() {
   drawPlayer();
   drawBullets();
   drawEnemies();
+  drawBoss();
   drawEffects();
   drawScore();
   updateBullets();
   updateEnemies();
   updateEffects();
+  updateBoss();
   detectCollisions();
   requestAnimationFrame(gameLoop);
 }
@@ -212,24 +270,48 @@ function startGame() {
     gameTime--;
     timerDisplay.textContent = `${gameTime}秒`;
     bonusTime = gameTime <= 10;
-    if (gameTime <= 0) {
+
+    if (!isBossPhase && gameTime <= 0) {
+      isBossPhase = true;
+      gameTime = 30;
+      boss = {
+        x: 100,
+        y: 0,
+        width: 80,
+        height: 80,
+        speedY: 1,
+        speedX: 2
+      };
+      showBossText('ようこそ…本当のライブへ');
+    }
+
+    if (isBossPhase && gameTime <= 0 && bossHP > 0) {
+      resultDisplay.innerHTML = `時間切れ…敗北です💀<br><button onclick="restartGame()">リベンジ！</button>`;
+      resultDisplay.style.display = 'block';
       clearInterval(gameInterval);
       clearInterval(enemySpawnInterval);
-      explosionSound.play();
-      const title = getTitle(score);
-      resultDisplay.innerHTML = `あなたの称号：${title}<br>スコア：${score}<br><button onclick="restartGame()">もう1回！</button>`;
-      resultDisplay.style.display = 'block';
     }
   }, 1000);
+
   enemySpawnInterval = setInterval(() => {
-    if (gameTime <= 5) {
-      spawnEnemy(6);
-    } else if (bonusTime) {
-      spawnEnemy(3);
-    } else {
-      spawnEnemy(1);
+    if (!isBossPhase) {
+      if (gameTime <= 5) {
+        spawnEnemy(6);
+      } else if (bonusTime) {
+        spawnEnemy(3);
+      } else {
+        spawnEnemy(1);
+      }
     }
   }, 400);
+}
+
+function endGame() {
+  clearInterval(gameInterval);
+  clearInterval(enemySpawnInterval);
+  const title = getTitle(score);
+  resultDisplay.innerHTML = `あなたの称号：${title}<br>スコア：${score}<br><button onclick="restartGame()">もう1回！</button>`;
+  resultDisplay.style.display = 'block';
 }
 
 function restartGame() {
