@@ -1,12 +1,14 @@
-// game.js（修正済みフルコード）
-// 内容：ボス300x300、上部出現、ランダム左右ふらふら、ごちゃごちゃ動き、音符削除、時間切れで終了修正
+// game.js（最新版）
+// 修正内容：
+// ・ボス画像を200x200に変更（ファイル名 boss200.png）
+// ・ゲーム終了後（タイマー0）に攻撃・撃破不可
+// ・isGameOver フラグ追加で制御
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 400;
 canvas.height = 600;
 
-// プレイヤー画像
 const playerImgFront = new Image();
 const playerImgLeft = new Image();
 const playerImgRight = new Image();
@@ -19,14 +21,13 @@ playerImgHeart.src = 'heart.png';
 const enemyImg1 = new Image();
 const enemyImg2 = new Image();
 const bossImg = new Image();
+const bulletImg = new Image();
+
 enemyImg1.src = 'note-cute1.png';
 enemyImg2.src = 'note-cute2.png';
-bossImg.src = 'boss.png';
-
-const bulletImg = new Image();
+bossImg.src = 'boss200.png';
 bulletImg.src = 'bullet.png';
 
-// 音
 const shootSound = new Audio('cute_shoot.mp3');
 const hitSound = new Audio('poan_hit.mp3');
 const startSound = new Audio('start_jingle.mp3');
@@ -51,6 +52,7 @@ let isBossPhase = false;
 let boss = null;
 let bossHP = 30;
 let bossMoveTimer = 0;
+let isGameOver = false;
 
 const timerDisplay = document.getElementById('timerDisplay');
 timerDisplay.style.left = '300px';
@@ -84,6 +86,7 @@ function resetGame() {
   boss = null;
   bossHP = 30;
   isBossPhase = false;
+  isGameOver = false;
   currentImg = playerImgFront;
   resultDisplay.innerHTML = '';
   resultDisplay.style.display = 'none';
@@ -148,13 +151,14 @@ function showBossText(text) {
 }
 
 function detectCollisions() {
+  if (isGameOver) return;
   bullets.forEach((b, bIndex) => {
     if (boss && b.x > boss.x && b.x < boss.x + boss.width && b.y > boss.y && b.y < boss.y + boss.height) {
       bullets.splice(bIndex, 1);
       effects.push({ x: b.x, y: b.y, size: 20, alpha: 1.2, color: 'rgba(255,0,200,0.8)' });
       bossHP--;
       showBossText('くっ…♡');
-      if (bossHP <= 0) {
+      if (bossHP <= 0 && !isGameOver) {
         explosionSound.play();
         score += 40;
         showBossText('認めてあげる…ちょっとだけね');
@@ -184,8 +188,10 @@ function drawScore() {
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (moveLeft) player.x = Math.max(0, player.x - player.speed);
-  if (moveRight) player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+  if (!isGameOver) {
+    if (moveLeft) player.x = Math.max(0, player.x - player.speed);
+    if (moveRight) player.x = Math.min(canvas.width - player.width, player.x + player.speed);
+  }
   drawPlayer();
   drawBullets();
   drawEnemies();
@@ -201,6 +207,7 @@ function gameLoop() {
 }
 
 function shoot() {
+  if (isGameOver) return;
   const now = Date.now();
   if (now - lastShotTime < shotCooldown) return;
   lastShotTime = now;
@@ -235,6 +242,7 @@ function startGame() {
   gameInterval = setInterval(() => {
     if (gameTime <= 0) {
       if (isBossPhase && bossHP > 0) {
+        isGameOver = true;
         resultDisplay.innerHTML = `時間切れ…敗北です💀<br><button onclick=\"restartGame()\">リベンジ！</button>`;
         resultDisplay.style.display = 'block';
         clearInterval(gameInterval);
@@ -253,8 +261,8 @@ function startGame() {
       boss = {
         x: 50,
         y: 50,
-        width: 300,
-        height: 300,
+        width: 200,
+        height: 200,
         speedX: 2
       };
       showBossText('ようこそ…本当のライブへ');
@@ -275,6 +283,7 @@ function startGame() {
 }
 
 function endGame() {
+  isGameOver = true;
   clearInterval(gameInterval);
   clearInterval(enemySpawnInterval);
   const title = getTitle(score);
