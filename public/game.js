@@ -16,11 +16,9 @@ playerImgHeart.src = 'heart.png';
 const enemyImg1 = new Image();
 const enemyImg2 = new Image();
 const bossImg = new Image();
-const noteImg = new Image();
 enemyImg1.src = 'note-cute1.png';
 enemyImg2.src = 'note-cute2.png';
 bossImg.src = 'boss.png';
-noteImg.src = 'note.png';
 
 const bulletImg = new Image();
 bulletImg.src = 'bullet.png';
@@ -122,7 +120,7 @@ function drawEffects() {
   effects.forEach((fx, i) => {
     ctx.beginPath();
     ctx.arc(fx.x, fx.y, fx.size, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255,192,203,${fx.alpha})`;
+    ctx.fillStyle = fx.color || `rgba(255,192,203,${fx.alpha})`;
     ctx.fill();
   });
 }
@@ -198,7 +196,7 @@ function detectCollisions() {
       b.x > boss.x && b.x < boss.x + boss.width &&
       b.y > boss.y && b.y < boss.y + boss.height) {
       bullets.splice(bIndex, 1);
-      effects.push({ x: b.x, y: b.y, size: 5, alpha: 1 });
+      effects.push({ x: b.x, y: b.y, size: 20, alpha: 1.2, color: 'rgba(255,0,200,0.8)' });
       bossHP--;
       showBossText('くっ…♡');
       if (bossHP <= 0) {
@@ -206,7 +204,21 @@ function detectCollisions() {
         showBossText('認めてあげる…ちょっとだけね');
         endGame();
       }
+      return;
     }
+    enemies.forEach((e, eIndex) => {
+      if (
+        b.x > e.x && b.x < e.x + e.width &&
+        b.y > e.y && b.y < e.y + e.height
+      ) {
+        bullets.splice(bIndex, 1);
+        enemies.splice(eIndex, 1);
+        effects.push({ x: b.x, y: b.y, size: 5, alpha: 1 });
+        hitSound.currentTime = 0;
+        hitSound.play();
+        score++;
+      }
+    });
   });
 }
 
