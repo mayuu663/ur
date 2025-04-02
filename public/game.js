@@ -319,3 +319,61 @@ document.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowLeft') { moveLeft = false; currentImg = playerImgFront; }
   if (e.key === 'ArrowRight') { moveRight = false; currentImg = playerImgFront; }
 });
+// ✅ Supabaseスコア送信 & ランキング表示機能つき game.js
+
+// Supabase 設定
+const SUPABASE_URL = "https://wkfwfirhoteijgcdsjom.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndrZndmaXJob3RlaWpnY2Rzam9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1NjIzOTQsImV4cCI6MjA1OTEzODM5NH0.PinpdOJPb0fGHMfmC5t9kQBJklECELdjhxrSMMwQMRM";
+
+// Farcaster frame から受け取った fid や username を利用する（ここでは仮に固定）
+let fid = 123456;
+let username = "testuser"; // あとで Frame POSTから動的に受け取る形に変更可能
+
+// スコア送信
+async function submitScoreToSupabase(fid, username, score) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify({ fid, username, score })
+  });
+  const data = await res.json();
+  console.log("Score submitted:", data);
+}
+
+// ランキング取得（上位10件）
+async function fetchRankingFromSupabase() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/scoreboard?select=*&order=score.desc&limit=10`, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    }
+  });
+  return await res.json();
+}
+
+// ゲーム終了時にランキングも表示
+async function endGame() {
+  isGameOver = true;
+  clearInterval(gameInterval);
+  clearInterval(enemySpawnInterval);
+  const title = getTitle(score);
+
+  await submitScoreToSupabase(fid, username, score);
+  const rankings = await fetchRankingFromSupabase();
+
+  let rankingHTML = '<h3>🏆 Leaderboard</h3><ol>';
+  rankings.forEach((r) => {
+    rankingHTML += `<li>${r.username || "anon"} - ${r.score}</li>`;
+  });
+  rankingHTML += '</ol>';
+
+  resultDisplay.innerHTML = `Your Title: ${title}<br>Score: ${score}<br><br>${rankingHTML}<br><button onclick="restartGame()">Play Again</button>`;
+  resultDisplay.style.display = 'block';
+}
+
+// 既存の game.js に追加する形でOK！
