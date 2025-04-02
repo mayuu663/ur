@@ -1,4 +1,4 @@
-// ✅ game.js（完全フルバージョン / スコアとタイマー見やすく分離済）
+// ✅ game.js（完全フルバージョン / スコアとタイマー見やすくピンクに）
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -52,23 +52,21 @@ let isGameOver = false;
 
 const timerDisplay = document.getElementById('timerDisplay');
 const scoreDisplay = document.getElementById('scoreDisplay');
-timerDisplay.style.right = '10px';
-timerDisplay.style.top = '10px';
 const resultDisplay = document.getElementById('result');
 
 function getTitle(score) {
-  if (score >= 150) return '🌈 神話級アイドル砲神👑';
-  if (score >= 100) return '💥 超次元アイドル破壊王';
-  if (score >= 90) return '🔥 爆裂全弾命中マスター';
-  if (score >= 80) return '💫 音速超えのスターシューター';
-  if (score >= 70) return '🚀 超絶反応アド連射姫';
-  if (score >= 60) return '🌟 極限かわいさ連打職人';
-  if (score >= 50) return '👑 爆アドシューティング神！';
-  if (score >= 40) return '💫 超連射の鬼';
-  if (score >= 30) return '💪 本気のアイドル';
-  if (score >= 20) return '🌟 シューティング見習い';
-  if (score >= 10) return '🥚 まだまだこれから！';
-  return '😢 撃たれ放題アイドル候補生';
+  if (score >= 150) return '🌈 Legendary Idol Blaster 👑';
+  if (score >= 100) return '💥 Dimensional Idol Destroyer';
+  if (score >= 90) return '🔥 All-Perfect Hit Master';
+  if (score >= 80) return '💫 Supersonic Star Shooter';
+  if (score >= 70) return '🚀 Adrenaline Tap Queen';
+  if (score >= 60) return '🌟 Cuteness Combo Crusher';
+  if (score >= 50) return '👑 Baku-Ad Shooting God';
+  if (score >= 40) return '💫 Rapid Fire Fiend';
+  if (score >= 30) return '💪 Serious Stage Idol';
+  if (score >= 20) return '🌟 Shooting Trainee';
+  if (score >= 10) return '🥚 Just Getting Started';
+  return '😢 Idol Candidate Under Fire';
 }
 
 function resetGame() {
@@ -103,7 +101,6 @@ function drawBossHpBar() {
     const x = canvas.width / 2 - barWidth / 2;
     const y = 40;
     const hpRatio = bossHP / 30;
-
     ctx.fillStyle = 'gray';
     ctx.fillRect(x, y, barWidth, barHeight);
     ctx.fillStyle = 'red';
@@ -171,11 +168,11 @@ function detectCollisions() {
       bullets.splice(bIndex, 1);
       effects.push({ x: b.x, y: b.y, size: 20, alpha: 1.2, color: 'rgba(255,0,200,0.8)' });
       bossHP--;
-      showBossText('くっ…♡');
+      showBossText('Nghh...♡');
       if (bossHP <= 0 && !isGameOver) {
         explosionSound.play();
         score += 40;
-        showBossText('認めてあげる…ちょっとだけね');
+        showBossText("I'll admit it... just a little.");
         boss = null;
         endGame();
       }
@@ -251,34 +248,26 @@ function spawnEnemy(count = 1) {
 function startGame() {
   resetGame();
   startSound.play();
-  timerDisplay.textContent = `${gameTime}秒`;
+  timerDisplay.textContent = `${gameTime}s`;
   gameInterval = setInterval(() => {
     if (gameTime <= 0) {
       if (isBossPhase && bossHP > 0) {
         isGameOver = true;
-        resultDisplay.innerHTML = `時間切れ…敗北です💀<br><button onclick=\"restartGame()\">リベンジ！</button>`;
+        resultDisplay.innerHTML = `Time's up... Defeat 💀<br><button onclick=\"restartGame()\">Try Again</button>`;
         resultDisplay.style.display = 'block';
         clearInterval(gameInterval);
         clearInterval(enemySpawnInterval);
       }
       return;
     }
-
     gameTime--;
-    timerDisplay.textContent = `${gameTime}秒`;
+    timerDisplay.textContent = `${gameTime}s`;
     bonusTime = gameTime <= 10;
-
     if (!isBossPhase && gameTime <= 0) {
       isBossPhase = true;
       gameTime = 30;
-      boss = {
-        x: 50,
-        y: 50,
-        width: 150,
-        height: 150,
-        speedX: 1.5
-      };
-      showBossText('ようこそ…本当のライブへ');
+      boss = { x: 50, y: 50, width: 150, height: 150, speedX: 1.5 };
+      showBossText('Welcome... to the true live stage!');
     }
   }, 1000);
 
@@ -300,7 +289,7 @@ function endGame() {
   clearInterval(gameInterval);
   clearInterval(enemySpawnInterval);
   const title = getTitle(score);
-  resultDisplay.innerHTML = `あなたの称号：${title}<br>スコア：${score}<br><button onclick=\"restartGame()\">もう1回！</button>`;
+  resultDisplay.innerHTML = `Your Title: ${title}<br>Score: ${score}<br><button onclick=\"restartGame()\">Play Again</button>`;
   resultDisplay.style.display = 'block';
 }
 
